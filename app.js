@@ -551,7 +551,7 @@ const translations = {
     },
     header: {
       title: "社区洪水风险仪表盘",
-      tagline: "了解洪水暴露，查找避难所，并规划保险保障。"
+      tagline: "了解洪水风险，查找避难所，并规划保险保障。"
     },
     search: {
       label: "搜索地块名称",
@@ -565,8 +565,8 @@ const translations = {
       parcelTitle: "地块每平方米价值",
       zones: {
         VE: "VE — 沿海洪水伴随波浪冲击",
-        AE: "AE — 高风险（基准洪水水位）",
-        AO: "AO — 河流/溪流洪水，深度 1-3 英尺",
+        AE: "AE — 高风险",
+        AO: "AO — 河流/溪流洪水",
         A: "A — 高风险（无基准洪水水位）",
         X: "X — 中等或最低风险"
       },
@@ -600,7 +600,7 @@ const translations = {
     },
     info: {
       riskTitle: "我的洪水风险",
-      shelterTitle: "洪水来时去哪里",
+      shelterTitle: "避难指南",
       insuranceTitle: "洪水保险指南",
       riskPlaceholder: "点击地图查看您所在位置的洪水分区信息。",
       shelterPlaceholder: "我们会列出最近的避难所及距离。",
@@ -610,7 +610,7 @@ const translations = {
       title: "欢迎使用洪水风险仪表盘",
       body:
         '<h3 style="color:#1B5E20;">简介</h3><p>该面板是面向维京群岛居民的数据可视化与交互平台。目标是为了帮助居民了解他们所处位置的洪水风险，找到避难所，并接受房屋洪水保险的建议。</p><h3 style="color:#1B5E20;">使用方法</h3><p>点击地图上的任何位置，或者搜索地点，右侧的信息面板会显示所选位置的：</p><ul><li>洪水风险等级</li><li>最近避难所及导航跳转</li><li>财产评估与洪水保险建议</li></ul>',
-      action: "知道了",
+      action: "进入面板",
       languageLabel: "选择语言：",
       language: { en: "英语", es: "西班牙语", zh: "中文" }
     },
@@ -624,7 +624,7 @@ const translations = {
       severity: {
         VE: "严重的沿海洪水风险",
         AE: "高洪水风险",
-        AO: "中等洪水风险（浅层溢流）",
+        AO: "中等洪水风险",
         A: "较高洪水风险",
         X: "较低洪水风险",
         none: "洪水风险极低"
