@@ -184,6 +184,9 @@ const tutorialModal = document.getElementById("tutorial-modal");
 const tutorialCloseButtons = tutorialModal
   ? tutorialModal.querySelectorAll('[data-tutorial-close]')
   : [];
+const tutorialLanguageButtons = tutorialModal
+  ? tutorialModal.querySelectorAll(".tutorial-modal__language-button")
+  : [];
 
 const parcelSearchForm = document.getElementById("parcel-search-form");
 const parcelSearchInput = document.getElementById("parcel-search-input");
@@ -195,6 +198,7 @@ const RISK_TOOLTIP_ALIGN_CLASSES = [
 
 function showTutorialModal() {
   if (!tutorialModal) return;
+  updateTutorialLanguageButtons();
   tutorialModal.classList.remove("hidden");
   tutorialModal.setAttribute("aria-hidden", "false");
   const actionButton = tutorialModal.querySelector(".tutorial-modal__action");
@@ -209,13 +213,657 @@ function hideTutorialModal() {
   tutorialModal.setAttribute("aria-hidden", "true");
 }
 
-const calcNoteHtml =
-  '<div class="calc-note">'
-  + '<a href="#" id="calc-note-link">How are these numbers calculated?</a>'
-  + '</div>';
+function updateTutorialLanguageButtons(lang = currentLanguage) {
+  if (!tutorialLanguageButtons.length) return;
+  tutorialLanguageButtons.forEach(button => {
+    const buttonLang = button.dataset.language;
+    const isActive = buttonLang === lang;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
 
-const insurancePlaceholderHtml =
-  '<p class="info-placeholder">Get a quick estimate of insurance needs based on your property value and flood risk.</p>' + calcNoteHtml;
+const languageSelect = document.getElementById("language-select");
+
+const supportedLanguages = ["en", "es", "zh"];
+let currentLanguage = "en";
+let currentSelection = null;
+
+const translations = {
+  en: {
+    language: {
+      label: "Language",
+      options: { en: "English", es: "Español", zh: "中文" }
+    },
+    header: {
+      title: "Community Flood Risk Dashboard",
+      tagline: "Understand flood exposure, find shelters, and plan insurance coverage."
+    },
+    search: {
+      label: "Search parcel name",
+      placeholder: "Search parcel name…",
+      button: "Search"
+    },
+    legend: {
+      floodLayers: "Flood Zone Layers",
+      instruction: "Select zones to display on the map.",
+      zoneGuide: "Zone Guide",
+      parcelTitle: "Parcel Value per sq. meter",
+      zones: {
+        VE: "VE — Coastal flood with wave action",
+        AE: "AE — High risk (Base Flood Elevation)",
+        AO: "AO — River/stream flood, depth 1-3 ft",
+        A: "A — High risk (no Base Flood Elevation)",
+        X: "X — Moderate or minimal risk"
+      },
+      shelter: "Shelters",
+      parcelLowDefault: "Low",
+      parcelHighDefault: "High",
+      parcelUnavailable: "N/A",
+      parcelValue: "{amount}/m²",
+      parcelRange: "{start} – {end}/m²",
+      parcelRangeUpper: "{start}+/m²"
+    },
+    zones: {
+      labels: {
+        VE: "Zone VE",
+        AE: "Zone AE",
+        AO: "Zone AO",
+        A: "Zone A",
+        X: "Zone X",
+        parcel: "Parcel Value",
+        shelter: "Shelters"
+      },
+      descriptions: {
+        VE: "Very high coastal flood risk with wave action of 3 ft or more (coastal velocity zone).",
+        AE: "High flood risk with Base Flood Elevation determined (1% annual chance flood).",
+        AO: "Sloping terrain flood risk with sheet flow, average depths of 1 to 3 feet.",
+        A: "High flood risk areas without detailed studies or Base Flood Elevation.",
+        X: "Moderate-to-minimal flood risk; flooding is possible but less likely than in SFHA zones.",
+        parcel: "Toggle parcel value layer.",
+        shelter: "Toggle shelter locations."
+      }
+    },
+    info: {
+      riskTitle: "My Flood Risk",
+      shelterTitle: "Where to Go During Flood",
+      insuranceTitle: "Flood Insurance Guide",
+      riskPlaceholder: "Click on the map to explore flood zone details for your location.",
+      shelterPlaceholder: "We will list the nearest shelter and travel distance.",
+      insurancePlaceholder: "Get a quick estimate of insurance needs based on your property value and flood risk."
+    },
+    tutorial: {
+      title: "Welcome to the Flood Risk Dashboard",
+      body:
+        "<p>Click anywhere on the map to see the flood risk, the nearest shelter, and view flood insurance suggestions.</p>",
+      action: "Got it",
+      languageLabel: "Choose your language:",
+      language: { en: "English", es: "Español", zh: "中文" }
+    },
+    footer: {
+      sources:
+        'Data sources: <a href="https://www.fema.gov/flood-maps" target="_blank" rel="noopener noreferrer">FEMA Flood Maps</a>, <a href="https://usvi-open-data-portal-upenn.hub.arcgis.com" target="_blank" rel="noopener noreferrer">USVI Open Data Portal</a>.'
+    },
+    risk: {
+      noneHeading: "No mapped flood zone",
+      noneDescription: "This point is outside the Special Flood Hazard Area. Flash flooding is still possible in extreme storms.",
+      severity: {
+        VE: "Severe coastal flood hazard",
+        AE: "High flood hazard",
+        AO: "Moderate flood hazard (sheet flow)",
+        A: "Elevated flood hazard",
+        X: "Lower flood hazard",
+        none: "Minimal mapped flood hazard"
+      },
+      depthWithValue: '<p class="info-subtle">Estimated flood depth: <strong>{value} ft</strong></p>',
+      depthUnavailable: '<p class="info-subtle">Estimated flood depth: <strong>Not available</strong></p>',
+      bfeLabel: '<p class="info-subtle">Base Flood Elevation: <strong>{value} ft</strong></p>',
+      tooltip: {
+        none: "View explanation for areas outside mapped flood zones",
+        zone: "View explanation for {zone}"
+      },
+      gaugeLabel: "Flood Risk Position",
+      gaugeValue: {
+        none: "Outside SFHA"
+      },
+      zoneLabelSuffix: "zone",
+      gaugeZoneLabel: {
+        none: "—"
+      }
+    },
+    insurance: {
+      premiumLabel: "Estimated annual premium for NFIP-level coverage in this zone:",
+      premiumAmount: "{amount}/year",
+      coverageText: 'Recommended building coverage: <span class="info-highlight">{amount}</span>. The National Flood Insurance Program currently caps residential building coverage at $250,000. Consider excess flood insurance if your replacement cost is higher.',
+      recommendations: {
+        VE: "Flood insurance is mandatory for federally backed mortgages. Prepare for storm surge and wave damage with elevated structures and coastal hardening.",
+        AE: "<strong>Insurance is required in most cases. Elevate utilities above the Base Flood Elevation and plan for 1% annual chance floods.</strong>",
+        AO: "Insurance strongly recommended. Consider grading or barriers to redirect shallow flooding away from the property.",
+        A: "<strong>Insurance required for most mortgages. Request an elevation certificate to refine premiums and mitigation needs.</strong>",
+        X: "<strong>Preferred risk policies are available. Insurance optional but still advised because 25% of flood claims originate in lower risk zones.</strong>",
+        none: "Consider low-cost protection if near flood-prone areas. Maintain drainage and monitor future map updates."
+      },
+      selectedParcel: "Selected parcel:",
+      calcLink: "How are these numbers calculated?"
+    },
+    shelter: {
+      cardHeading: "The nearest shelter is:",
+      distance: "Distance: {distance}",
+      noDataTitle: "Shelter data not available",
+      noDataDescription: "Please contact local emergency management for evacuation guidance.",
+      navigate: "Navigate to Shelter"
+    },
+    format: {
+      distance: "{km} km ({miles} mi)"
+    },
+    meters: {
+      labels: {
+        parcelValue: "Parcel Value",
+        improvementValue: "Improvement Value",
+        valuePerAcre: "Value per Acre"
+      },
+      unavailable: "N/A",
+      perAcre: "{amount} / acre",
+      percentile: "Percentile: {percent}%"
+    },
+    parcels: {
+      unknown: "Parcel",
+      tooltipTotal: "Total: {value}",
+      tooltipPerSquare: "Per m²: {value}"
+    },
+    placeholders: {
+      searchEnter: "Enter a parcel name to search.",
+      searchLoading: "Parcel data is still loading. Please try again shortly.",
+      searchNotFound: 'No parcel found matching "{query}".',
+      searchUnable: "Unable to center on the selected parcel.",
+      searchShowing: "Showing parcel: {name}"
+    },
+    buttons: {
+      close: "Close"
+    },
+    calc: {
+      title: "How We Estimate Flood Insurance",
+      body:
+        "<p>The annual premium shown is a simplified estimate to help compare relative risk between zones. We multiply the parcel's total value (land + improvements) by a zone-specific rate and clamp the result to a reasonable range.</p><ul><li>Premium = clamp(totalValue × rate, minimum $450, maximum $7,200)</li><li>Recommended building coverage = min(totalValue, $250,000)</li></ul><p>Zone rates used: VE 1.8%, AE 1.5%, AO 1.2%, A 1.2%, X 0.6%, and 0.4% if no mapped zone. These are heuristic placeholders and not official NFIP rates.</p><p>Actual premiums depend on many additional variables (elevation certificate, foundation type, first-floor height, flood openings, replacement cost, deductibles, private market options, etc.). Contact a licensed agent for a binding quote.</p>"
+    }
+  },
+  es: {
+    language: {
+      label: "Idioma",
+      options: { en: "Inglés", es: "Español", zh: "Chino" }
+    },
+    header: {
+      title: "Panel de Riesgo de Inundaciones Comunitario",
+      tagline: "Comprenda la exposición a inundaciones, encuentre refugios y planifique la cobertura de seguros."
+    },
+    search: {
+      label: "Buscar nombre de parcela",
+      placeholder: "Buscar nombre de parcela…",
+      button: "Buscar"
+    },
+    legend: {
+      floodLayers: "Capas de zonas de inundación",
+      instruction: "Seleccione zonas para mostrarlas en el mapa.",
+      zoneGuide: "Guía de zonas",
+      parcelTitle: "Valor de la parcela por m²",
+      zones: {
+        VE: "VE — Inundación costera con oleaje",
+        AE: "AE — Alto riesgo (Elevación de Inundación Base)",
+        AO: "AO — Inundación fluvial, profundidad de 1 a 3 pies",
+        A: "A — Alto riesgo (sin elevación base determinada)",
+        X: "X — Riesgo moderado o mínimo"
+      },
+      shelter: "Refugios",
+      parcelLowDefault: "Low",
+      parcelHighDefault: "High",
+      parcelUnavailable: "N/D",
+      parcelValue: "{amount}/m²",
+      parcelRange: "{start} – {end}/m²",
+      parcelRangeUpper: "{start}+/m²"
+    },
+    zones: {
+      labels: {
+        VE: "Zona VE",
+        AE: "Zona AE",
+        AO: "Zona AO",
+        A: "Zona A",
+        X: "Zona X",
+        parcel: "Valor de la parcela",
+        shelter: "Refugios"
+      },
+      descriptions: {
+        VE: "Riesgo de inundación costera muy alto con oleaje de 3 pies o más (zona de velocidad costera).",
+        AE: "Alto riesgo de inundación con Elevación de Inundación Base determinada (inundación con probabilidad anual del 1%).",
+        AO: "Riesgo de inundación en terreno inclinado con flujo laminar, profundidades promedio de 1 a 3 pies.",
+        A: "Áreas de alto riesgo de inundación sin estudios detallados ni Elevación de Inundación Base.",
+        X: "Riesgo moderado a mínimo; la inundación es posible pero menos probable que en las zonas SFHA.",
+        parcel: "Activar la capa de valor de parcelas.",
+        shelter: "Mostrar ubicaciones de refugios."
+      }
+    },
+    info: {
+      riskTitle: "Mi riesgo de inundación",
+      shelterTitle: "Dónde ir durante una inundación",
+      insuranceTitle: "Guía de seguro contra inundaciones",
+      riskPlaceholder: "Haga clic en el mapa para explorar los detalles de la zona de inundación de su ubicación.",
+      shelterPlaceholder: "Mostraremos el refugio más cercano y la distancia de viaje.",
+      insurancePlaceholder: "Obtenga una estimación rápida de las necesidades de seguro según el valor de su propiedad y el riesgo de inundación."
+    },
+    tutorial: {
+      title: "Bienvenido al panel de riesgo de inundaciones",
+      body:
+        "<p>Haga clic en cualquier lugar del mapa para ver el riesgo de inundación, el refugio más cercano y las sugerencias de seguro contra inundaciones.</p>",
+      action: "Entendido",
+      languageLabel: "Selecciona un idioma:",
+      language: { en: "Inglés", es: "Español", zh: "Chino" }
+    },
+    footer: {
+      sources:
+        'Fuentes de datos: <a href="https://www.fema.gov/flood-maps" target="_blank" rel="noopener noreferrer">Mapas de inundación de FEMA</a>, <a href="https://usvi-open-data-portal-upenn.hub.arcgis.com" target="_blank" rel="noopener noreferrer">Portal de Datos Abiertos de USVI</a>.'
+    },
+    risk: {
+      noneHeading: "Sin zona de inundación cartografiada",
+      noneDescription: "Este punto está fuera del Área Especial de Peligro de Inundación. Las inundaciones repentinas siguen siendo posibles en tormentas extremas.",
+      severity: {
+        VE: "Peligro severo de inundación costera",
+        AE: "Alto peligro de inundación",
+        AO: "Peligro moderado de inundación (escorrentía)",
+        A: "Peligro elevado de inundación",
+        X: "Peligro bajo de inundación",
+        none: "Peligro mínimo de inundación cartografiada"
+      },
+      depthWithValue: '<p class="info-subtle">Profundidad estimada de inundación: <strong>{value} ft</strong></p>',
+      depthUnavailable: '<p class="info-subtle">Profundidad estimada de inundación: <strong>No disponible</strong></p>',
+      bfeLabel: '<p class="info-subtle">Elevación base de inundación: <strong>{value} ft</strong></p>',
+      tooltip: {
+        none: "Ver explicación para áreas fuera de las zonas cartografiadas",
+        zone: "Ver explicación de {zone}"
+      },
+      gaugeLabel: "Posición de riesgo de inundación",
+      gaugeValue: {
+        none: "Fuera de la SFHA"
+      },
+      zoneLabelSuffix: "zona",
+      gaugeZoneLabel: {
+        none: "—"
+      }
+    },
+    insurance: {
+      premiumLabel: "Prima anual estimada para cobertura NFIP en esta zona:",
+      premiumAmount: "{amount}/año",
+      coverageText: 'Cobertura recomendada del edificio: <span class="info-highlight">{amount}</span>. El Programa Nacional de Seguro contra Inundaciones limita la cobertura residencial del edificio a 250 000 USD. Considere un seguro adicional si el costo de reposición es mayor.',
+      recommendations: {
+        VE: "El seguro contra inundaciones es obligatorio para hipotecas respaldadas por el gobierno federal. Prepárese para marejadas y daños por oleaje elevando la estructura y reforzando la costa.",
+        AE: "<strong>El seguro es obligatorio en la mayoría de los casos. Eleve las utilidades por encima de la Elevación de Inundación Base y planifique inundaciones con probabilidad anual del 1%.</strong>",
+        AO: "Se recomienda encarecidamente contratar un seguro. Considere nivelar el terreno o instalar barreras para desviar el agua superficial poco profunda lejos de la propiedad.",
+        A: "<strong>El seguro es exigido para la mayoría de las hipotecas. Solicite un certificado de elevación para ajustar las primas y las medidas de mitigación.</strong>",
+        X: "<strong>Existen pólizas de riesgo preferente. El seguro es opcional, pero sigue siendo recomendable porque el 25% de los reclamos proviene de zonas de menor riesgo.</strong>",
+        none: "Considere una protección de bajo costo si está cerca de zonas propensas a inundaciones. Mantenga el drenaje y supervise futuras actualizaciones del mapa."
+      },
+      selectedParcel: "Parcela seleccionada:",
+      calcLink: "¿Cómo se calculan estas cifras?"
+    },
+    shelter: {
+      cardHeading: "El refugio más cercano es:",
+      distance: "Distancia: {distance}",
+      noDataTitle: "Datos de refugios no disponibles",
+      noDataDescription: "Comuníquese con la gestión de emergencias local para obtener instrucciones de evacuación.",
+      navigate: "Cómo llegar al refugio"
+    },
+    format: {
+      distance: "{km} km ({miles} mi)"
+    },
+    meters: {
+      labels: {
+        parcelValue: "Valor del terreno",
+        improvementValue: "Valor de las mejoras",
+        valuePerAcre: "Valor por acre"
+      },
+      unavailable: "N/D",
+      perAcre: "{amount} / acre",
+      percentile: "Percentil: {percent}%"
+    },
+    parcels: {
+      unknown: "Parcela",
+      tooltipTotal: "Total: {value}",
+      tooltipPerSquare: "Por m²: {value}"
+    },
+    placeholders: {
+      searchEnter: "Introduzca un nombre de parcela para buscar.",
+      searchLoading: "Los datos de parcelas aún se están cargando. Vuelva a intentarlo en breve.",
+      searchNotFound: 'No se encontró ninguna parcela que coincida con "{query}".',
+      searchUnable: "No se puede centrar en la parcela seleccionada.",
+      searchShowing: "Mostrando parcela: {name}"
+    },
+    buttons: {
+      close: "Cerrar"
+    },
+    calc: {
+      title: "Cómo estimamos el seguro contra inundaciones",
+      body:
+        "<p>La prima anual mostrada es una estimación simplificada para ayudar a comparar el riesgo relativo entre zonas. Multiplicamos el valor total de la parcela (terreno + mejoras) por una tasa específica de la zona y limitamos el resultado a un rango razonable.</p><ul><li>Prima = limitar(totalValue × tasa, mínimo 450 USD, máximo 7 200 USD)</li><li>Cobertura de edificio recomendada = min(totalValue, 250 000 USD)</li></ul><p>Tasas de zona utilizadas: VE 1,8 %, AE 1,5 %, AO 1,2 %, A 1,2 %, X 0,6 % y 0,4 % si no hay zona cartografiada. Son valores heurísticos y no tasas oficiales del NFIP.</p><p>Las primas reales dependen de muchas variables adicionales (certificado de elevación, tipo de cimentación, altura del primer piso, aberturas contra inundación, costo de reposición, deducibles, opciones del mercado privado, etc.). Consulte a un agente autorizado para obtener una cotización vinculante.</p>"
+    }
+  },
+  zh: {
+    language: {
+      label: "语言",
+      options: { en: "英语", es: "西班牙语", zh: "中文" }
+    },
+    header: {
+      title: "社区洪水风险仪表盘",
+      tagline: "了解洪水暴露，查找避难所，并规划保险保障。"
+    },
+    search: {
+      label: "搜索地块名称",
+      placeholder: "搜索地块名称…",
+      button: "搜索"
+    },
+    legend: {
+      floodLayers: "洪水分区图层",
+      instruction: "选择要在地图上显示的分区。",
+      zoneGuide: "分区指南",
+      parcelTitle: "地块每平方米价值",
+      zones: {
+        VE: "VE — 沿海洪水伴随波浪冲击",
+        AE: "AE — 高风险（基准洪水水位）",
+        AO: "AO — 河流/溪流洪水，深度 1-3 英尺",
+        A: "A — 高风险（无基准洪水水位）",
+        X: "X — 中等或最低风险"
+      },
+      shelter: "避难所",
+      parcelLowDefault: "Low",
+      parcelHighDefault: "High",
+      parcelUnavailable: "暂无数据",
+      parcelValue: "{amount}/平方米",
+      parcelRange: "{start} – {end}/平方米",
+      parcelRangeUpper: "{start}+ /平方米"
+    },
+    zones: {
+      labels: {
+        VE: "VE 区",
+        AE: "AE 区",
+        AO: "AO 区",
+        A: "A 区",
+        X: "X 区",
+        parcel: "地块价值",
+        shelter: "避难所"
+      },
+      descriptions: {
+        VE: "非常高的沿海洪水风险，伴随 3 英尺以上的波浪作用（沿海速度区）。",
+        AE: "具有基准洪水水位的高洪水风险（1% 年发生概率洪水）。",
+        AO: "地势倾斜区域的洪水风险，浅层水流平均深度 1 至 3 英尺。",
+        A: "无详细研究或基准洪水水位的高洪水风险区域。",
+        X: "中等到较低的洪水风险；发生洪水的可能性低于 SFHA 区域。",
+        parcel: "切换地块价值图层。",
+        shelter: "切换避难所位置。"
+      }
+    },
+    info: {
+      riskTitle: "我的洪水风险",
+      shelterTitle: "洪水来时去哪里",
+      insuranceTitle: "洪水保险指南",
+      riskPlaceholder: "点击地图查看您所在位置的洪水分区信息。",
+      shelterPlaceholder: "我们会列出最近的避难所及距离。",
+      insurancePlaceholder: "根据您的房产价值和洪水风险快速估算保险需求。"
+    },
+    tutorial: {
+      title: "欢迎使用洪水风险仪表盘",
+      body:
+        '<h3 style="color:#1B5E20;">简介</h3><p>该面板是面向维京群岛居民的数据可视化与交互平台。目标是为了帮助居民了解他们所处位置的洪水风险，找到避难所，并接受房屋洪水保险的建议。</p><h3 style="color:#1B5E20;">使用方法</h3><p>点击地图上的任何位置，或者搜索地点，右侧的信息面板会显示所选位置的：</p><ul><li>洪水风险等级</li><li>最近避难所及导航跳转</li><li>财产评估与洪水保险建议</li></ul>',
+      action: "知道了",
+      languageLabel: "选择语言：",
+      language: { en: "英语", es: "西班牙语", zh: "中文" }
+    },
+    footer: {
+      sources:
+        '数据来源：<a href="https://www.fema.gov/flood-maps" target="_blank" rel="noopener noreferrer">FEMA 洪水地图</a>、<a href="https://usvi-open-data-portal-upenn.hub.arcgis.com" target="_blank" rel="noopener noreferrer">美属维尔京群岛开放数据门户</a>。'
+    },
+    risk: {
+      noneHeading: "无已绘制的洪水区",
+      noneDescription: "该位置位于特别洪水危险区之外。极端降雨仍可能引发山洪。",
+      severity: {
+        VE: "严重的沿海洪水风险",
+        AE: "高洪水风险",
+        AO: "中等洪水风险（浅层溢流）",
+        A: "较高洪水风险",
+        X: "较低洪水风险",
+        none: "洪水风险极低"
+      },
+      depthWithValue: '<p class="info-subtle">估算洪水深度：<strong>{value} 英尺</strong></p>',
+      depthUnavailable: '<p class="info-subtle">估算洪水深度：<strong>暂无数据</strong></p>',
+      bfeLabel: '<p class="info-subtle">基准洪水水位：<strong>{value} 英尺</strong></p>',
+      tooltip: {
+        none: "查看未绘制洪水区的说明",
+        zone: "查看 {zone} 的说明"
+      },
+      gaugeLabel: "洪水风险位置",
+      gaugeValue: {
+        none: "位于特别洪水危险区外"
+      },
+      zoneLabelSuffix: "分区",
+      gaugeZoneLabel: {
+        none: "—"
+      }
+    },
+    insurance: {
+      premiumLabel: "该分区的 NFIP 年度保费估算：",
+      premiumAmount: "{amount}/年",
+      coverageText: '建议的建筑保险额度：<span class="info-highlight">{amount}</span>。国家洪水保险计划目前将住宅建筑保险额度上限设为 250,000 美元，如需更高的重置成本，请考虑额外洪水保险。',
+      recommendations: {
+        VE: "对于联邦支持的抵押贷款，必须购买洪水保险。通过抬高建筑并加固海岸来防范风暴潮与波浪损害。",
+        AE: "<strong>大多数情况下都需要购买保险。将设备抬高到基准洪水水位之上，并为每年 1% 概率的洪水做好准备。</strong>",
+        AO: "强烈建议购买保险。可考虑整平或设置屏障，以引导浅层水流远离房屋。",
+        A: "<strong>大多数抵押贷款都要求投保。申请测高证书，以便更准确地估算保费和减灾需求。</strong>",
+        X: "<strong>可选择优惠风险保单。虽然保险是可选的，但仍建议购买，因为 25% 的洪水理赔来自低风险区域。</strong>",
+        none: "如果靠近易洪区域，可考虑低成本的防护措施。保持排水通畅并关注未来的地图更新。"
+      },
+      selectedParcel: "已选择的地块：",
+      calcLink: "这些数值是如何计算的？"
+    },
+    shelter: {
+      cardHeading: "最近的避难所：",
+      distance: "距离：{distance}",
+      noDataTitle: "暂无避难所数据",
+      noDataDescription: "请联系当地应急管理部门获取撤离指引。",
+      navigate: "导航到避难所"
+    },
+    format: {
+      distance: "{km} 公里（{miles} 英里）"
+    },
+    meters: {
+      labels: {
+        parcelValue: "地块价值",
+        improvementValue: "改良价值",
+        valuePerAcre: "每英亩价值"
+      },
+      unavailable: "暂无数据",
+      perAcre: "{amount}/英亩",
+      percentile: "百分位：{percent}%"
+    },
+    parcels: {
+      unknown: "地块",
+      tooltipTotal: "总价值：{value}",
+      tooltipPerSquare: "每平方米：{value}"
+    },
+    placeholders: {
+      searchEnter: "请输入要搜索的地块名称。",
+      searchLoading: "地块数据仍在加载中，请稍后再试。",
+      searchNotFound: '未找到与“{query}”匹配的地块。',
+      searchUnable: "无法定位到所选地块。",
+      searchShowing: "正在显示地块：{name}"
+    },
+    buttons: {
+      close: "关闭"
+    },
+    calc: {
+      title: "我们如何估算洪水保险",
+      body:
+        "<p>显示的年度保费是一个简化估算，用于比较不同分区之间的相对风险。我们将地块的总价值（土地 + 改良）乘以分区专属费率，并将结果限制在合理范围内。</p><ul><li>保费 = 限制(totalValue × 费率，最低 450 美元，最高 7,200 美元)</li><li>建议建筑保险额度 = min(totalValue, 250,000 美元)</li></ul><p>使用的分区费率：VE 1.8%，AE 1.5%，AO 1.2%，A 1.2%，X 0.6%，无分区时为 0.4%。这些仅为经验估算，并非 NFIP 官方费率。</p><p>实际保费受更多因素影响（测高证书、地基类型、首层高度、防洪开口、重置成本、免赔额、私人市场方案等）。请联系持牌代理获取正式报价。</p>"
+    }
+  }
+};
+
+function getLocaleForLang(lang = currentLanguage) {
+  if (lang === "es") return "es-ES";
+  if (lang === "zh") return "zh-CN";
+  return "en-US";
+}
+
+function formatNumber(value, options = {}) {
+  const locale = getLocaleForLang();
+  return new Intl.NumberFormat(locale, options).format(value);
+}
+
+function formatCurrency(value, options = {}) {
+  const locale = getLocaleForLang();
+  const formatterOptions = {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+    ...options
+  };
+  return new Intl.NumberFormat(locale, formatterOptions).format(value);
+}
+
+function formatParcelAmount(value) {
+  if (!Number.isFinite(value)) return "$0.00";
+  return `$${value.toFixed(2)}`;
+}
+
+function translate(key, replacements = {}, lang = currentLanguage) {
+  const languages = [lang, "en"];
+  for (const lng of languages) {
+    const source = translations[lng];
+    if (!source) continue;
+    const value = key.split(".").reduce((obj, part) => (obj && obj[part] !== undefined ? obj[part] : null), source);
+    if (typeof value === "string") {
+      let text = value;
+      for (const [token, replacement] of Object.entries(replacements)) {
+        const pattern = new RegExp(`{${token}}`, "g");
+        text = text.replace(pattern, replacement);
+      }
+      return text;
+    }
+  }
+  return key;
+}
+
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (!key) return;
+    el.textContent = translate(key);
+  });
+
+  document.querySelectorAll("[data-i18n-html]").forEach(el => {
+    const key = el.getAttribute("data-i18n-html");
+    if (!key) return;
+    el.innerHTML = translate(key);
+  });
+
+  document.querySelectorAll("[data-i18n-title]").forEach(el => {
+    const key = el.getAttribute("data-i18n-title");
+    if (!key) return;
+    el.title = translate(key);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (!key) return;
+    el.setAttribute("placeholder", translate(key));
+  });
+
+  document.querySelectorAll("[data-i18n-aria-label]").forEach(el => {
+    const key = el.getAttribute("data-i18n-aria-label");
+    if (!key) return;
+    el.setAttribute("aria-label", translate(key));
+  });
+
+  if (languageSelect) {
+    languageSelect.querySelectorAll("option[data-i18n]").forEach(option => {
+      const key = option.getAttribute("data-i18n");
+      if (!key) return;
+      option.textContent = translate(key);
+    });
+  }
+}
+
+function updateZoneLayerTooltips() {
+  for (const [zoneId, entry] of floodZoneLayers.entries()) {
+    const labelText = translate(`zones.labels.${zoneId}`);
+    const tooltipOptions = { direction: "top", offset: [0, -6], sticky: true };
+    if (entry.layer && entry.layer.eachLayer) {
+      entry.layer.eachLayer(featureLayer => {
+        featureLayer.bindTooltip(labelText, tooltipOptions);
+      });
+    }
+    const toggle = document.querySelector(`.layer-toggle[data-zone="${zoneId}"]`);
+    if (toggle) {
+      toggle.title = translate(`zones.descriptions.${zoneId}`);
+    }
+  }
+
+  const parcelToggle = document.querySelector(".layer-toggle[data-layer='parcel']");
+  if (parcelToggle) {
+    parcelToggle.title = translate("zones.descriptions.parcel");
+  }
+  const shelterToggle = document.querySelector(".layer-toggle[data-layer='shelter']");
+  if (shelterToggle) {
+    shelterToggle.title = translate("zones.descriptions.shelter");
+  }
+}
+
+function renderCurrentSelection() {
+  if (!currentSelection) {
+    showPlaceholder();
+    return;
+  }
+  const { lonLat, parcelFeature, distanceKm } = currentSelection;
+  if (!lonLat || !parcelFeature) {
+    showPlaceholder();
+    return;
+  }
+  const zoneResult = findFloodZone(lonLat);
+  const shelterResult = findNearestShelter(lonLat, parcelFeature);
+  const parcelResult = { feature: parcelFeature, distanceKm: distanceKm ?? 0 };
+  renderRiskInfo(zoneResult);
+  renderShelterInfo(shelterResult, parcelFeature);
+  renderInsuranceInfo(zoneResult, parcelResult);
+  renderShelterConnection(lonLat, shelterResult?.feature);
+}
+
+function setLanguage(lang) {
+  if (!translations[lang]) {
+    lang = "en";
+  }
+  currentLanguage = lang;
+  document.documentElement.lang = lang;
+  document.title = translate("header.title");
+  if (languageSelect && languageSelect.value !== lang) {
+    languageSelect.value = lang;
+  }
+  updateTutorialLanguageButtons(lang);
+  applyTranslations();
+  updateZoneLayerTooltips();
+  renderCurrentSelection();
+  updateParcelLegend(parcelStats);
+  if (parcelSearchFeedback) {
+    parcelSearchFeedback.textContent = "";
+    parcelSearchFeedback.classList.remove("search-feedback--error");
+  }
+}
+
+function calcNoteHtml() {
+  return (
+    '<div class="calc-note">' +
+    `<a href="#" id="calc-note-link">${translate("insurance.calcLink")}</a>` +
+    "</div>"
+  );
+}
+
+function insurancePlaceholderHtml() {
+  return `<p class="info-placeholder">${translate("info.insurancePlaceholder")}</p>` + calcNoteHtml();
+}
 
 const legendRefs = {
   parcelMin: document.querySelector(".parcel-min"),
@@ -307,11 +955,13 @@ function getZoneRiskPercent(zoneId) {
 }
 
 const showPlaceholder = () => {
-  infoPanel.risk.innerHTML =
-    '<p class="info-placeholder">Click on the map to explore flood zone details for your location.</p>';
-  infoPanel.shelter.innerHTML =
-    '<p class="info-placeholder">We will list the nearest shelter and travel distance.</p>';
-  infoPanel.insurance.innerHTML = insurancePlaceholderHtml;
+  infoPanel.risk.innerHTML = `
+    <p class="info-placeholder">${translate("info.riskPlaceholder")}</p>
+  `;
+  infoPanel.shelter.innerHTML = `
+    <p class="info-placeholder">${translate("info.shelterPlaceholder")}</p>
+  `;
+  infoPanel.insurance.innerHTML = insurancePlaceholderHtml();
   clearShelterConnection();
   updateShelterIcons(null);
   attachCalcModalHandlers();
@@ -322,42 +972,32 @@ const css = getComputedStyle(document.documentElement);
 const floodZonesConfig = [
   {
     id: "VE",
-    label: "Zone VE",
     color: css.getPropertyValue("--zone-ve").trim() || "#d95d39",
     file: "data/VE.geojson",
-    description: "Very high coastal flood risk with wave action of 3 ft or more (coastal velocity zone).",
     defaultVisible: true
   },
   {
     id: "AE",
-    label: "Zone AE",
     color: css.getPropertyValue("--zone-ae").trim() || "#f07918",
     file: "data/AE.geojson",
-    description: "High flood risk with Base Flood Elevation determined (1% annual chance flood).",
     defaultVisible: true
   },
   {
     id: "AO",
-    label: "Zone AO",
     color: css.getPropertyValue("--zone-ao").trim() || "#f4a261",
     file: "data/AO.geojson",
-    description: "Sloping terrain flood risk with sheet flow, average depths of 1 to 3 feet.",
     defaultVisible: true
   },
   {
     id: "A",
-    label: "Zone A",
     color: css.getPropertyValue("--zone-a").trim() || "#e9c46a",
     file: "data/A.geojson",
-    description: "High flood risk areas without detailed studies or Base Flood Elevation.",
     defaultVisible: true
   },
   {
     id: "X",
-    label: "Zone X",
     color: css.getPropertyValue("--zone-x").trim() || "#8ab17d",
     file: "data/X.geojson",
-    description: "Moderate-to-minimal flood risk; flooding is possible but less likely than in SFHA zones.",
     defaultVisible: false
   }
 ];
@@ -366,42 +1006,12 @@ const zoneConfigMap = new Map(floodZonesConfig.map(config => [config.id, config]
 const zonePriority = ["VE", "AE", "AO", "A", "X"];
 
 const riskProfiles = {
-  VE: {
-    severity: "Severe coastal flood hazard",
-    recommendation:
-      "Flood insurance is mandatory for federally backed mortgages. Prepare for storm surge and wave damage with elevated structures and coastal hardening.",
-    premiumRate: 0.018
-  },
-  AE: {
-    severity: "High flood hazard",
-    recommendation:
-      "Insurance is required in most cases. Elevate utilities above the Base Flood Elevation and plan for 1% annual chance floods.",
-    premiumRate: 0.015
-  },
-  AO: {
-    severity: "Moderate flood hazard (sheet flow)",
-    recommendation:
-      "Insurance strongly recommended. Consider grading or barriers to redirect shallow flooding away from the property.",
-    premiumRate: 0.012
-  },
-  A: {
-    severity: "Elevated flood hazard",
-    recommendation:
-      "Insurance required for most mortgages. Request an elevation certificate to refine premiums and mitigation needs.",
-    premiumRate: 0.012
-  },
-  X: {
-    severity: "Lower flood hazard",
-    recommendation:
-      "Preferred risk policies are available. Insurance optional but still advised because 25% of flood claims originate in lower risk zones.",
-    premiumRate: 0.006
-  },
-  none: {
-    severity: "Minimal mapped flood hazard",
-    recommendation:
-      "Consider low-cost protection if near flood-prone areas. Maintain drainage and monitor future map updates.",
-    premiumRate: 0.004
-  }
+  VE: { premiumRate: 0.018 },
+  AE: { premiumRate: 0.015 },
+  AO: { premiumRate: 0.012 },
+  A: { premiumRate: 0.012 },
+  X: { premiumRate: 0.006 },
+  none: { premiumRate: 0.004 }
 };
 
 const floodZoneLayers = new Map();
@@ -538,7 +1148,11 @@ function createZoneLayer(config, features) {
       fillOpacity: config.id === "A" || config.id === "AO" ? 0.65 : 0.55
     }),
     onEachFeature: (_, layer) => {
-      layer.bindTooltip(config.label, { direction: "top", offset: [0, -6], sticky: true });
+      layer.bindTooltip(translate(`zones.labels.${config.id}`), {
+        direction: "top",
+        offset: [0, -6],
+        sticky: true
+      });
     }
   });
 }
@@ -589,15 +1203,18 @@ function parcelStyle(feature) {
 function updateParcelLegend(stats) {
   if (!legendRefs.parcelMin || !legendRefs.parcelMax || !legendRefs.parcelGradient) return;
   if (!stats || !Number.isFinite(stats.min) || !Number.isFinite(stats.max)) {
-    legendRefs.parcelMin.textContent = "N/A";
-    legendRefs.parcelMax.textContent = "N/A";
+    legendRefs.parcelMin.textContent = translate("legend.parcelUnavailable");
+    legendRefs.parcelMax.textContent = translate("legend.parcelUnavailable");
     legendRefs.parcelGradient.style.background = `linear-gradient(to right, ${parcelColorRamp.join(", ")})`;
     legendRefs.parcelGradient.title = "";
     return;
   }
 
-  legendRefs.parcelMin.textContent = `$${stats.min.toFixed(2)}/m²`;
-  legendRefs.parcelMax.textContent = `$${stats.max.toFixed(2)}/m²`;
+  const minLabel = translate("legend.parcelValue", { amount: formatParcelAmount(stats.min) });
+  const maxLabel = translate("legend.parcelValue", { amount: formatParcelAmount(stats.max) });
+
+  legendRefs.parcelMin.textContent = minLabel;
+  legendRefs.parcelMax.textContent = maxLabel;
   legendRefs.parcelGradient.style.background = `linear-gradient(to right, ${parcelColorRamp.join(", ")})`;
 
   const stops = [stats.min, ...parcelBreaks, stats.max];
@@ -606,9 +1223,12 @@ function updateParcelLegend(stats) {
     const start = stops[i];
     const end = stops[i + 1];
     if (i === parcelColorRamp.length - 1) {
-      ranges.push(`$${start.toFixed(2)}+/m²`);
+      const startAmount = formatParcelAmount(start);
+      ranges.push(translate("legend.parcelRangeUpper", { start: startAmount }));
     } else {
-      ranges.push(`$${start.toFixed(2)} – $${end.toFixed(2)}/m²`);
+      const startAmount = formatParcelAmount(start);
+      const endAmount = formatParcelAmount(end);
+      ranges.push(translate("legend.parcelRange", { start: startAmount, end: endAmount }));
     }
   }
   legendRefs.parcelGradient.title = ranges.join("\n");
@@ -644,7 +1264,8 @@ function attachLayerToggle(container, config) {
   const label = document.createElement("label");
   label.className = "layer-toggle";
   label.dataset.zone = config.id;
-  label.title = config.description;
+  label.dataset.i18nTitle = `zones.descriptions.${config.id}`;
+  label.title = translate(label.dataset.i18nTitle);
 
   const input = document.createElement("input");
   input.type = "checkbox";
@@ -657,7 +1278,8 @@ function attachLayerToggle(container, config) {
   swatch.setAttribute("aria-hidden", "true");
 
   const span = document.createElement("span");
-  span.textContent = config.label;
+  span.dataset.i18n = `zones.labels.${config.id}`;
+  span.textContent = translate(`zones.labels.${config.id}`);
 
   label.append(input, swatch, span);
   container.append(label);
@@ -680,7 +1302,8 @@ function ensureParcelToggle() {
     label = document.createElement("label");
     label.className = "layer-toggle";
     label.dataset.layer = "parcel";
-    label.title = "Toggle parcel value visualization";
+    label.dataset.i18nTitle = "zones.descriptions.parcel";
+    label.title = translate("zones.descriptions.parcel");
     const input = document.createElement("input");
     input.type = "checkbox";
     const swatch = document.createElement("span");
@@ -688,7 +1311,8 @@ function ensureParcelToggle() {
     swatch.style.background = "linear-gradient(to right, #f7fbff, #c6dbef, #6baed6, #3182bd, #08519c)";
     swatch.setAttribute("aria-hidden", "true");
     const span = document.createElement("span");
-    span.textContent = "Parcel Value";
+    span.dataset.i18n = "zones.labels.parcel";
+    span.textContent = translate("zones.labels.parcel");
     label.append(input, swatch, span);
     input.addEventListener("change", event => {
       toggleParcelLayer(event.target.checked);
@@ -713,7 +1337,8 @@ function ensureShelterToggle() {
     label = document.createElement("label");
     label.className = "layer-toggle";
     label.dataset.layer = "shelter";
-    label.title = "Toggle shelter locations";
+    label.dataset.i18nTitle = "zones.descriptions.shelter";
+    label.title = translate("zones.descriptions.shelter");
     const input = document.createElement("input");
     input.type = "checkbox";
     const swatch = document.createElement("span");
@@ -721,7 +1346,8 @@ function ensureShelterToggle() {
     swatch.style.backgroundImage = 'url("picture/shelter.png")';
     swatch.setAttribute("aria-hidden", "true");
     const span = document.createElement("span");
-    span.textContent = "Shelters";
+    span.dataset.i18n = "zones.labels.shelter";
+    span.textContent = translate("zones.labels.shelter");
     label.append(input, swatch, span);
     input.addEventListener("change", event => {
       toggleShelterLayer(event.target.checked);
@@ -859,7 +1485,6 @@ async function loadFloodZones() {
       floodZoneLayers.set(config.id, {
         layer,
         features,
-        description: config.description,
         visible: !!config.defaultVisible
       });
 
@@ -884,6 +1509,8 @@ async function loadFloodZones() {
 
   ensureShelterToggle();
   ensureParcelToggle();
+  updateZoneLayerTooltips();
+  applyTranslations();
 }
 
 async function loadShelters() {
@@ -1053,11 +1680,19 @@ async function loadParcelValues() {
       parcelLayer = L.geoJSON(dataStore.parcelCollection, {
         pane: PARCEL_PANE,
         onEachFeature: (feature, layer) => {
-          const name = feature.properties?.displayName || "Parcel";
-          const totalValue = Number(feature.properties?.totalValue) || 0;
-          const valuePerSqMeter = Number(feature.properties?.valuePerSqMeter) || 0;
+          const name = feature.properties?.displayName || translate("parcels.unknown");
+          const totalValue = Number(feature.properties?.totalValue);
+          const valuePerSqMeter = Number(feature.properties?.valuePerSqMeter);
+          const totalLine = Number.isFinite(totalValue)
+            ? translate("parcels.tooltipTotal", { value: formatCurrency(totalValue) })
+            : translate("parcels.tooltipTotal", { value: translate("meters.unavailable") });
+          const perSquareValue = Number.isFinite(valuePerSqMeter)
+            ? translate("legend.parcelValue", { amount: formatParcelAmount(valuePerSqMeter) })
+            : translate("meters.unavailable");
+          const perSquareLine = translate("parcels.tooltipPerSquare", { value: perSquareValue });
+
           layer.bindTooltip(
-            `${name}<br>${currencyFormatter.format(totalValue)} total<br>$${valuePerSqMeter.toFixed(2)} / m²`,
+            `${name}<br>${totalLine}<br>${perSquareLine}`,
             { direction: "top", offset: [0, -6], sticky: true }
           );
         },
@@ -1108,15 +1743,11 @@ async function loadParcelValues() {
   }
 }
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0
-});
-
 const formatDistance = km => {
   const miles = km * 0.621371;
-  return `${km.toFixed(2)} km (${miles.toFixed(2)} mi)`;
+  const kmText = formatNumber(km, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const milesText = formatNumber(miles, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return translate("format.distance", { km: kmText, miles: milesText });
 };
 
 const findFloodZone = point => {
@@ -1130,7 +1761,7 @@ const findFloodZone = point => {
       if (pointInPolygon(point, feature)) {
         return {
           zoneId,
-          description: zoneConfigMap.get(zoneId)?.description ?? "",
+          description: translate(`zones.descriptions.${zoneId}`),
           feature
         };
       }
@@ -1211,25 +1842,22 @@ const renderRiskInfo = zoneResult => {
   const clampedRisk = clampPercent(getZoneRiskPercent(zoneId));
 
   let elevationDetails = "";
-  let description = "";
 
   if (zoneResult?.feature) {
     const feature = zoneResult.feature;
-    description = zoneResult.description ?? "";
     const baseFloodElevation = Number(feature.properties?.STATIC_BFE);
     const depth = Number(feature.properties?.DEPTH);
     const hasBfe = Number.isFinite(baseFloodElevation) && baseFloodElevation > -9000;
     const hasDepth = Number.isFinite(depth) && depth !== -9999;
 
-    const depthLabel =
-      hasBfe || !hasDepth
-        ? hasBfe
-          ? ""
-          : `<p class="info-subtle">Estimated flood depth: <strong>Not available</strong></p>`
-        : `<p class="info-subtle">Estimated flood depth: <strong>${depth} ft</strong></p>`;
+    const depthLabel = !hasBfe
+      ? hasDepth
+        ? translate("risk.depthWithValue", { value: depth })
+        : translate("risk.depthUnavailable")
+      : "";
 
     const bfeLabel = hasBfe
-      ? `<p class="info-subtle">Base Flood Elevation: <strong>${baseFloodElevation} ft</strong></p>`
+      ? translate("risk.bfeLabel", { value: baseFloodElevation })
       : "";
 
     elevationDetails = `${depthLabel}${bfeLabel}`;
@@ -1238,18 +1866,19 @@ const renderRiskInfo = zoneResult => {
   let summaryTitle;
   let summaryDescription;
   if (zoneId === "none") {
-    summaryTitle = "No mapped flood zone";
-    summaryDescription =
-      "This point is outside the Special Flood Hazard Area. Flash flooding is still possible in extreme storms.";
+    summaryTitle = translate("risk.noneHeading");
+    summaryDescription = translate("risk.noneDescription");
   } else {
-    summaryTitle = `${zoneId} &mdash; ${profile.severity}`;
-    summaryDescription = description || "";
+    const severityText = translate(`risk.severity.${zoneId}`);
+    summaryTitle = `${zoneId} &mdash; ${severityText}`;
+    summaryDescription = translate(`zones.descriptions.${zoneId}`);
   }
 
+  const zoneLabel = translate(`zones.labels.${zoneId}`);
   const tooltipLabel =
     zoneId === "none"
-      ? "View explanation for areas outside mapped flood zones"
-      : `View explanation for ${zoneId} zone`;
+      ? translate("risk.tooltip.none")
+      : translate("risk.tooltip.zone", { zone: zoneLabel });
   const tooltipHtml = summaryDescription
     ? `
         <span class="risk-summary__tooltip">
@@ -1278,8 +1907,11 @@ const renderRiskInfo = zoneResult => {
     clampedRisk === null
       ? ""
       : createRiskGauge({
-          label: "Flood Risk Position",
-          valueDisplay: zoneId === "none" ? "Outside SFHA" : `${zoneId} zone`,
+          label: translate("risk.gaugeLabel"),
+          valueDisplay:
+            zoneId === "none"
+              ? translate("risk.gaugeValue.none")
+              : `${zoneId} ${translate("risk.zoneLabelSuffix")}`,
           zoneId,
           percent: clampedRisk,
           summaryHtml,
@@ -1301,8 +1933,8 @@ const renderShelterInfo = (shelterResult, parcelFeature) => {
   if (!shelterResult) {
     infoPanel.shelter.innerHTML = `
       <div class="metric-card">
-        <strong>Shelter data not available</strong>
-        <span>Please contact local emergency management for evacuation guidance.</span>
+        <strong>${translate("shelter.noDataTitle")}</strong>
+        <span>${translate("shelter.noDataDescription")}</span>
       </div>
     `;
     clearShelterConnection();
@@ -1341,16 +1973,16 @@ const renderShelterInfo = (shelterResult, parcelFeature) => {
         target="_blank"
         rel="noopener noreferrer"
       >
-        Navigate to Shelter
+        ${translate("shelter.navigate")}
       </a>
     `;
   }
 
   infoPanel.shelter.innerHTML = `
     <div class="metric-card">
-      <span>The nearest shelter is:</span>
+      <span>${translate("shelter.cardHeading")}</span>
       <strong>${Name}</strong>
-      <span>Distance: ${distanceLabel}</span>
+      <span>${translate("shelter.distance", { distance: distanceLabel })}</span>
     </div>
     ${navigationButtonHtml}
   `;
@@ -1370,7 +2002,9 @@ function createGradientMeter({ label, valueDisplay, percent, gradientKey, footno
   } else if (footnote === null) {
     footnoteHtml = "";
   } else {
-    footnoteHtml = `<p class="meter-card__percent">Percentile: ${percentLabel}%</p>`;
+    footnoteHtml = `<p class="meter-card__percent">${translate("meters.percentile", {
+      percent: percentLabel
+    })}</p>`;
   }
 
   const safeLabel = label ?? "";
@@ -1397,7 +2031,7 @@ function createRiskGauge({ label, valueDisplay, zoneId, percent, summaryHtml, fo
   const clamped = clampPercent(percent);
   if (clamped === null) return "";
   const safeFootnote = typeof footnote === "string" ? footnote.trim() : "";
-  const zoneText = zoneId === "none" ? "N/A" : zoneId;
+  const zoneText = zoneId === "none" ? translate("risk.gaugeZoneLabel.none") : zoneId;
   const zoneNeedleAngles = {
     VE: -72,
     AE: -36,
@@ -1446,25 +2080,26 @@ function renderPropertyMeters(parcelFeature) {
   const totalValue = Number(props.totalValue);
   const improvementValue = Number(props.improvementValue);
   const valuePerAcre = Number(props.valuePerAcre);
+  const unavailableLabel = translate("meters.unavailable");
 
   const cards = [
     {
-      label: "Parcel Value",
-      valueDisplay: Number.isFinite(totalValue) ? currencyFormatter.format(totalValue) : "N/A",
+      label: translate("meters.labels.parcelValue"),
+      valueDisplay: Number.isFinite(totalValue) ? formatCurrency(totalValue) : unavailableLabel,
       percent: percentiles.totalValue,
       gradientKey: "risk"
     },
     {
-      label: "Improvement Value",
-      valueDisplay: Number.isFinite(improvementValue) ? currencyFormatter.format(improvementValue) : "N/A",
+      label: translate("meters.labels.improvementValue"),
+      valueDisplay: Number.isFinite(improvementValue) ? formatCurrency(improvementValue) : unavailableLabel,
       percent: percentiles.improvementValue,
       gradientKey: "risk"
     },
     {
-      label: "Value per Acre",
+      label: translate("meters.labels.valuePerAcre"),
       valueDisplay: Number.isFinite(valuePerAcre)
-        ? `${currencyFormatter.format(valuePerAcre)} / acre`
-        : "N/A",
+        ? translate("meters.perAcre", { amount: formatCurrency(valuePerAcre) })
+        : unavailableLabel,
       percent: percentiles.valuePerAcre,
       gradientKey: "risk"
     }
@@ -1484,7 +2119,7 @@ const renderInsuranceInfo = (zoneResult, parcelResult) => {
   const rawPropertyValue = Number(parcelFeature?.properties?.totalValue);
 
   if (!parcelFeature || !Number.isFinite(rawPropertyValue) || rawPropertyValue <= 0) {
-    infoPanel.insurance.innerHTML = insurancePlaceholderHtml;
+    infoPanel.insurance.innerHTML = insurancePlaceholderHtml();
     attachCalcModalHandlers();
     return;
   }
@@ -1496,37 +2131,32 @@ const renderInsuranceInfo = (zoneResult, parcelResult) => {
 
   if (propertyName) {
     fallbackNotice = `
-      <p class="info-subtle">Selected parcel: <strong>${propertyName}</strong></p>
+      <p class="info-subtle">${translate("insurance.selectedParcel")} <strong>${propertyName}</strong></p>
     `;
   }
 
   const estimatedPremium = Math.min(Math.max(propertyValue * profile.premiumRate, 450), 7200);
   const recommendedCoverage = Math.min(propertyValue, 250000);
   const propertyMetersHtml = renderPropertyMeters(parcelFeature);
-  let insuranceRecommendationHtml = "";
-  if (profile.recommendation) {
-    const trimmedRecommendation = profile.recommendation.trim();
-    const needsEmphasis =
-      trimmedRecommendation.startsWith("Insurance is required in most cases") ||
-      trimmedRecommendation.startsWith("Preferred risk policies are available");
-    const recommendationContent = needsEmphasis
-      ? `<strong>${profile.recommendation}</strong>`
-      : profile.recommendation;
-    insuranceRecommendationHtml = `<p>${recommendationContent}</p>`;
-  }
+  const premiumLabel = translate("insurance.premiumLabel");
+  const coverageText = translate("insurance.coverageText", {
+    amount: formatCurrency(recommendedCoverage)
+  });
+  const recommendationHtml = translate(`insurance.recommendations.${zoneId}`);
+  const premiumAmountText = translate("insurance.premiumAmount", {
+    amount: formatCurrency(estimatedPremium)
+  });
 
   infoPanel.insurance.innerHTML = `
     <div class="metric-card">
       ${fallbackNotice}
-      <span>Estimated annual premium for NFIP-level coverage in this zone:</span>
-      <strong>${currencyFormatter.format(estimatedPremium)}/year</strong>
+      <span>${premiumLabel}</span>
+      <strong>${premiumAmountText}</strong>
     </div>
     ${propertyMetersHtml}
-    <p>Recommended building coverage: <span class="info-highlight">${currencyFormatter.format(
-      recommendedCoverage
-    )}</span>. The National Flood Insurance Program currently caps residential building coverage at $250,000. Consider excess flood insurance if your replacement cost is higher.</p>
-    ${insuranceRecommendationHtml}
-    ${calcNoteHtml}
+    <p>${coverageText}</p>
+    ${recommendationHtml ? `<p>${recommendationHtml}</p>` : ""}
+    ${calcNoteHtml()}
   `;
 
   attachCalcModalHandlers();
@@ -1667,6 +2297,11 @@ function selectParcelFeature(parcelFeature) {
   renderShelterInfo(shelterResult, parcelFeature);
   renderInsuranceInfo(zoneResult, parcelResult);
   renderShelterConnection(lonLat, shelterResult?.feature);
+  currentSelection = {
+    lonLat,
+    parcelFeature,
+    distanceKm: 0
+  };
   return true;
 }
 
@@ -1675,24 +2310,27 @@ function handleParcelSearch(event) {
   if (!parcelSearchInput) return;
   const query = parcelSearchInput.value.trim();
   if (!query) {
-    setParcelSearchFeedback("Enter a parcel name to search.", true);
+    setParcelSearchFeedback(translate("placeholders.searchEnter"), true);
     return;
   }
   if (!dataStore.parcelCollection || !dataStore.parcelCollection.features?.length) {
-    setParcelSearchFeedback("Parcel data is still loading. Please try again shortly.", true);
+    setParcelSearchFeedback(translate("placeholders.searchLoading"), true);
     return;
   }
   const match = findParcelByName(query);
   if (!match) {
-    setParcelSearchFeedback(`No parcel found matching "${query}".`, true);
+    setParcelSearchFeedback(translate("placeholders.searchNotFound", { query }), true);
     return;
   }
   const success = selectParcelFeature(match);
   if (!success) {
-    setParcelSearchFeedback("Unable to center on the selected parcel.", true);
+    setParcelSearchFeedback(translate("placeholders.searchUnable"), true);
     return;
   }
-  setParcelSearchFeedback(`Showing parcel: ${match.properties?.displayName || ""}`, false);
+  setParcelSearchFeedback(
+    translate("placeholders.searchShowing", { name: match.properties?.displayName || "" }),
+    false
+  );
 }
 
 function pointInRing(point, ring) {
@@ -1768,6 +2406,7 @@ function handleMapClick(event) {
       selectionMarker.remove();
       selectionMarker = null;
     }
+    currentSelection = null;
     showPlaceholder();
     return;
   }
@@ -1781,6 +2420,11 @@ function handleMapClick(event) {
   renderShelterInfo(shelterResult, parcelResult.feature);
   renderInsuranceInfo(zoneResult, parcelResult);
   renderShelterConnection(lonLat, shelterResult?.feature);
+  currentSelection = {
+    lonLat,
+    parcelFeature: parcelResult.feature,
+    distanceKm: parcelResult.distanceKm
+  };
 }
 
 if (parcelSearchForm) {
@@ -1793,6 +2437,14 @@ if (parcelSearchInput) {
 
 if (tutorialModal) {
   tutorialCloseButtons.forEach(btn => btn.addEventListener("click", hideTutorialModal));
+  tutorialLanguageButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const lang = button.dataset.language;
+      if (lang) {
+        setLanguage(lang);
+      }
+    });
+  });
   tutorialModal.addEventListener("keydown", event => {
     if (event.key === "Escape" || event.key === "Esc") {
       hideTutorialModal();
@@ -1800,6 +2452,19 @@ if (tutorialModal) {
   });
 }
 
+if (languageSelect) {
+  languageSelect.addEventListener("change", event => setLanguage(event.target.value));
+}
+
+const browserLanguage = (navigator.language || "").toLowerCase();
+let initialLanguage = "en";
+if (browserLanguage.startsWith("es")) {
+  initialLanguage = "es";
+} else if (browserLanguage.startsWith("zh")) {
+  initialLanguage = "zh";
+}
+
+setLanguage(initialLanguage);
 showTutorialModal();
 
 async function init() {

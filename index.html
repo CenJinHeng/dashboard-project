@@ -13,8 +13,18 @@
 </head>
 <body>
   <header class="app-header">
-    <h1>Community Flood Risk Dashboard</h1>
-    <p class="tagline">Understand flood exposure, find shelters, and plan insurance coverage.</p>
+    <div class="header-text">
+      <h1 data-i18n="header.title">Community Flood Risk Dashboard</h1>
+      <p class="tagline" data-i18n="header.tagline">Understand flood exposure, find shelters, and plan insurance coverage.</p>
+    </div>
+    <div class="language-switcher">
+      <label class="sr-only" for="language-select" data-i18n="language.label">Language</label>
+      <select id="language-select" class="language-select">
+        <option value="en" data-i18n="language.options.en">English</option>
+        <option value="es" data-i18n="language.options.es">Español</option>
+        <option value="zh" data-i18n="language.options.zh">中文</option>
+      </select>
+    </div>
   </header>
 
   <div id="container" class="app-main">
@@ -22,29 +32,29 @@
       <div id="map"></div>
         <div class="legend-panel">
         <details class="legend-accordion">
-          <summary class="legend-accordion__summary">Flood Zone Layers</summary>
+          <summary class="legend-accordion__summary" data-i18n="legend.floodLayers">Flood Zone Layers</summary>
           <div class="legend-accordion__content">
-            <p>Select zones to display on the map.</p>
+            <p data-i18n="legend.instruction">Select zones to display on the map.</p>
             <div id="layer-toggles" class="layer-toggle-list"></div>
           </div>
         </details>
         <div class="legend-scale">
-          <h3>Zone Guide</h3>
+          <h3 data-i18n="legend.zoneGuide">Zone Guide</h3>
           <ul>
-            <li><span class="legend-swatch zone-ve"></span> VE &mdash; Coastal flood with wave action</li>
-            <li><span class="legend-swatch zone-ae"></span> AE &mdash; High risk (Base Flood Elevation)</li>
-            <li><span class="legend-swatch zone-ao"></span> AO &mdash; River/stream flood, depth 1-3 ft</li>
-            <li><span class="legend-swatch zone-a"></span> A &mdash; High risk (no Base Flood Elevation)</li>
-            <li><span class="legend-swatch zone-x"></span> X &mdash; Moderate or minimal risk</li>
-            <li><span class="legend-swatch legend-shelter"></span> Shelters</li>
+            <li><span class="legend-swatch zone-ve"></span> <span data-i18n="legend.zones.VE">VE &mdash; Coastal flood with wave action</span></li>
+            <li><span class="legend-swatch zone-ae"></span> <span data-i18n="legend.zones.AE">AE &mdash; High risk (Base Flood Elevation)</span></li>
+            <li><span class="legend-swatch zone-ao"></span> <span data-i18n="legend.zones.AO">AO &mdash; River/stream flood, depth 1-3 ft</span></li>
+            <li><span class="legend-swatch zone-a"></span> <span data-i18n="legend.zones.A">A &mdash; High risk (no Base Flood Elevation)</span></li>
+            <li><span class="legend-swatch zone-x"></span> <span data-i18n="legend.zones.X">X &mdash; Moderate or minimal risk</span></li>
+            <li><span class="legend-swatch legend-shelter"></span> <span data-i18n="legend.shelter">Shelters</span></li>
           </ul>
         </div>
         <div class="legend-scale parcel-scale">
-          <h3>Parcel Value per sq. meter</h3>
+          <h3 data-i18n="legend.parcelTitle">Parcel Value per sq. meter</h3>
           <div class="parcel-gradient">
-            <span class="parcel-min">$0/m²</span>
+            <span class="parcel-min" data-i18n="legend.parcelLowDefault">Low</span>
             <div class="parcel-gradient-bar"></div>
-            <span class="parcel-max">$0/m²</span>
+            <span class="parcel-max" data-i18n="legend.parcelHighDefault">High</span>
           </div>
         </div>
       </div>
@@ -53,55 +63,66 @@
     <aside class="info-panel" id="info-panel">
       <div class="info-search">
         <form id="parcel-search-form" class="parcel-search" autocomplete="off">
-          <label class="sr-only" for="parcel-search-input">Search parcel name</label>
+          <label class="sr-only" for="parcel-search-input" data-i18n="search.label">Search parcel name</label>
           <input
             type="search"
             id="parcel-search-input"
             name="parcel-search"
             placeholder="Search parcel name…"
+            data-i18n-placeholder="search.placeholder"
             aria-describedby="parcel-search-feedback"
           >
-          <button type="submit">Search</button>
+          <button type="submit" data-i18n="search.button">Search</button>
         </form>
         <p id="parcel-search-feedback" class="search-feedback" aria-live="polite"></p>
       </div>
 
       <section class="info-section" id="risk-section">
-        <h2>My Flood Risk</h2>
+        <h2 data-i18n="info.riskTitle">My Flood Risk</h2>
         <div class="info-body">
-          <p class="info-placeholder">Click on the map to explore flood zone details for your location.</p>
+          <p class="info-placeholder" data-i18n="info.riskPlaceholder">Click on the map to explore flood zone details for your location.</p>
         </div>
       </section>
 
       <section class="info-section" id="shelter-section">
-        <h2>Where to Go During Flood</h2>
+        <h2 data-i18n="info.shelterTitle">Where to Go During Flood</h2>
         <div class="info-body">
-          <p class="info-placeholder">We will list the nearest shelter and travel distance.</p>
+          <p class="info-placeholder" data-i18n="info.shelterPlaceholder">We will list the nearest shelter and travel distance.</p>
         </div>
       </section>
 
       <section class="info-section" id="insurance-section">
-        <h2>Flood Insurance Guide</h2>
+        <h2 data-i18n="info.insuranceTitle">Flood Insurance Guide</h2>
         <div class="info-body">
-          <p class="info-placeholder">Get a quick estimate of insurance needs based on your property value and flood risk.</p>
+          <p class="info-placeholder" data-i18n="info.insurancePlaceholder">Get a quick estimate of insurance needs based on your property value and flood risk.</p>
         </div>
       </section>
     </aside>
   </div>
 
   <footer class="app-footer">
-    <p>Data sources: <a href="https://www.fema.gov/flood-maps" target="_blank" rel="noopener noreferrer">FEMA Flood Maps</a>, <a href="https://usvi-open-data-portal-upenn.hub.arcgis.com" target="_blank" rel="noopener noreferrer">USVI Open Data Portal</a>.</p>
+    <p data-i18n-html="footer.sources">
+      Data sources: <a href="https://www.fema.gov/flood-maps" target="_blank" rel="noopener noreferrer">FEMA Flood Maps</a>, <a href="https://usvi-open-data-portal-upenn.hub.arcgis.com" target="_blank" rel="noopener noreferrer">USVI Open Data Portal</a>.
+    </p>
   </footer>
 
   <!-- Tutorial Modal -->
   <div id="tutorial-modal" class="tutorial-modal hidden" role="dialog" aria-modal="true" aria-labelledby="tutorial-modal-title">
     <div class="tutorial-modal__backdrop" data-tutorial-close></div>
     <div class="tutorial-modal__dialog">
-      <h2 id="tutorial-modal-title">Welcome to the Flood Risk Dashboard</h2>
-      <p class="tutorial-modal__body">
-        Click anywhere on the map to see the flood risk, the nearest shelter, and view flood insurance suggestions.
-      </p>
-      <button type="button" class="tutorial-modal__action" data-tutorial-close>Got it</button>
+      <h2 id="tutorial-modal-title" data-i18n="tutorial.title">Welcome to the Flood Risk Dashboard</h2>
+      <div class="tutorial-modal__language">
+        <p class="tutorial-modal__language-label" data-i18n="tutorial.languageLabel">Choose your language:</p>
+        <div class="tutorial-modal__language-controls" role="group" data-i18n-aria-label="tutorial.languageLabel">
+          <button type="button" class="tutorial-modal__language-button" data-language="en" data-i18n="tutorial.language.en">English</button>
+          <button type="button" class="tutorial-modal__language-button" data-language="es" data-i18n="tutorial.language.es">Español</button>
+          <button type="button" class="tutorial-modal__language-button" data-language="zh" data-i18n="tutorial.language.zh">中文</button>
+        </div>
+      </div>
+      <div class="tutorial-modal__body" data-i18n-html="tutorial.body">
+        <p>Click anywhere on the map to see the flood risk, the nearest shelter, and view flood insurance suggestions.</p>
+      </div>
+      <button type="button" class="tutorial-modal__action" data-tutorial-close data-i18n="tutorial.action">Got it</button>
     </div>
   </div>
 
@@ -110,27 +131,11 @@
     <div class="calc-modal__backdrop" data-calc-close></div>
     <div class="calc-modal__dialog">
       <div class="calc-modal__header">
-        <h3 id="calc-modal-title">How We Estimate Flood Insurance</h3>
+        <h3 id="calc-modal-title" data-i18n="calc.title">How We Estimate Flood Insurance</h3>
       </div>
-      <div class="calc-modal__body">
-        <p>
-          The annual premium shown is a simplified estimate to help compare relative risk between zones.
-          We multiply the parcel's total value (land + improvements) by a zone-specific rate and clamp the result to a reasonable range.
-        </p>
-        <ul>
-          <li>Premium = clamp(totalValue × rate, minimum $450, maximum $7,200)</li>
-          <li>Recommended building coverage = min(totalValue, $250,000)</li>
-        </ul>
-        <p>
-          Zone rates used: VE 1.8%, AE 1.5%, AO 1.2%, A 1.2%, X 0.6%, and 0.4% if no mapped zone. These are heuristic placeholders and not official NFIP rates.
-        </p>
-        <p>
-          Actual premiums depend on many additional variables (elevation certificate, foundation type, first-floor height, flood openings, replacement cost, deductibles, private market options, etc.).
-          Contact a licensed agent for a binding quote.
-        </p>
-      </div>
+      <div class="calc-modal__body" data-i18n-html="calc.body"></div>
       <div class="calc-modal__footer">
-        <button class="calc-modal__action" type="button" data-calc-close>Close</button>
+        <button class="calc-modal__action" type="button" data-calc-close data-i18n="buttons.close">Close</button>
       </div>
     </div>
   </div>

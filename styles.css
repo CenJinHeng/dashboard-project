@@ -34,6 +34,16 @@ body {
   padding: 0.5rem 2rem 0.4rem;
   background: #e3ebe7;
   border-bottom: 1px solid #c7d4cf;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .app-header h1 {
@@ -49,6 +59,55 @@ body {
   font-size: 0.95rem;
   line-height: 1.35;
   color: var(--text-muted);
+}
+
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.language-select {
+  padding: 0.4rem 2.2rem 0.4rem 0.9rem;
+  border: 1px solid var(--accent-mid);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+  font-weight: 600;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.language-select:focus-visible {
+  outline: none;
+  border-color: var(--accent-dark);
+  box-shadow: 0 0 0 2px rgba(35, 91, 67, 0.18);
+}
+
+.language-switcher::after {
+  content: "";
+  position: absolute;
+  right: 0.95rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 5px 4px 0 4px;
+  border-style: solid;
+  border-color: var(--accent-dark) transparent transparent transparent;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .language-switcher {
+    align-self: flex-start;
+  }
 }
 
 .app-main {
@@ -394,6 +453,42 @@ body {
   color: var(--accent-dark);
 }
 
+.tutorial-modal__language {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tutorial-modal__language-label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.tutorial-modal__language-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tutorial-modal__language-button {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent-mid);
+  background: #ffffff;
+  color: var(--accent-dark);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tutorial-modal__language-button.is-active {
+  background: var(--accent-dark);
+  color: #ffffff;
+  border-color: var(--accent-dark);
+}
+
 .tutorial-modal__body {
   margin: 0;
   font-size: 0.95rem;
@@ -448,6 +543,7 @@ body {
 }
 .calc-modal__header {
   padding: 1rem 1.2rem 0.4rem;
+  border-bottom: 1px solid var(--border-soft);
 }
 .calc-modal__header h3 { margin: 0; font-size: 1.05rem; color: var(--accent-dark); }
 .calc-modal__body { padding: 0.4rem 1.2rem 1rem; color: var(--text-dark); }
@@ -470,6 +566,11 @@ body {
 .calc-modal__action:hover,
 .calc-modal__action:focus-visible {
   background: var(--accent-dark);
+}
+
+.calc-modal__action:focus {
+  outline: none;
+  box-shadow: none;
 }
 .calc-note a { display: inline-block; }
 
