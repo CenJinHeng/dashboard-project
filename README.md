@@ -42,7 +42,7 @@ By integrating multiple data sources, including FEMA flood maps, land parcel val
 
 ---
 
-## 🗺️ Data Sources
+## Data Sources
 
 - **[FEMA Flood Maps](https://www.fema.gov/flood-maps)**  
   Provides official flood hazard zones, historical flood areas, and water depth data.
