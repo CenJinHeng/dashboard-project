@@ -45,7 +45,7 @@ By integrating multiple data sources, including FEMA flood maps, land parcel val
 ## Data Sources
 
 - **[FEMA Flood Maps](https://www.fema.gov/flood-maps)**  
-  Provides official flood hazard zones, historical flood areas, and water depth data.
+  Provides official flood hazard zones.
 
 - **[USVI Open Data Portal](https://usvi-open-data-portal-upenn.hub.arcgis.com)**  
   Provides land use, parcel value, and point-of-interest datasets across the U.S. Virgin Islands.
