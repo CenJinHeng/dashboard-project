@@ -1,0 +1,14 @@
+{
+"type": "FeatureCollection",
+"name": "h_shelter",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "FID": 1, "Name": "Sugar Estate Head Start Center", "Latitude": 18.339801, "Longitude": -64.920562, "Island": "St.Thomas" }, "geometry": { "type": "Point", "coordinates": [ -64.920562000036497, 18.339801000319099 ] } },
+{ "type": "Feature", "properties": { "FID": 2, "Name": "Community Health Clinic at Schneider", "Latitude": 18.340168, "Longitude": -64.914869, "Island": "St.Thomas" }, "geometry": { "type": "Point", "coordinates": [ -64.914869000104403, 18.3401680001563 ] } },
+{ "type": "Feature", "properties": { "FID": 3, "Name": "Lockhart Elementary", "Latitude": 18.341674, "Longitude": -64.916455, "Island": "St.Thomas" }, "geometry": { "type": "Point", "coordinates": [ -64.916455000398201, 18.341674000358001 ] } },
+{ "type": "Feature", "properties": { "FID": 4, "Name": "Knud Hansen Complex Strive Center", "Latitude": 18.34555, "Longitude": -64.926252, "Island": "St.Thomas" }, "geometry": { "type": "Point", "coordinates": [ -64.9262519998302, 18.345550000135599 ] } },
+{ "type": "Feature", "properties": { "FID": 5, "Name": "Charlotte Amalie High School Auditorium", "Latitude": 18.341186, "Longitude": -64.919949, "Island": "St.Thomas" }, "geometry": { "type": "Point", "coordinates": [ -64.919948999646806, 18.341186000336901 ] } },
+{ "type": "Feature", "properties": { "FID": 6, "Name": "Bertha B. Boschulte School", "Latitude": 18.317206, "Longitude": -64.891119, "Island": "St.Thomas" }, "geometry": { "type": "Point", "coordinates": [ -64.8911190002419, 18.317205999760201 ] } },
+{ "type": "Feature", "properties": { "FID": 12, "Name": "Water Island Station", "Latitude": 18.314065, "Longitude": -64.956731, "Island": "St.Thomas" }, "geometry": { "type": "Point", "coordinates": [ -64.956730999736095, 18.314064999703099 ] } }
+]
+}

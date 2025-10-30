@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Flood Risk Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Community Flood Risk Dashboard</h1>
+    <p class="tagline">Understand flood exposure, find shelters, and plan insurance coverage.</p>
+  </header>
+
+  <div id="container" class="app-main">
+    <section class="map-panel">
+      <div id="map"></div>
+        <div class="legend-panel">
+        <details class="legend-accordion">
+          <summary class="legend-accordion__summary">Flood Zone Layers</summary>
+          <div class="legend-accordion__content">
+            <p>Select zones to display on the map.</p>
+            <div id="layer-toggles" class="layer-toggle-list"></div>
+          </div>
+        </details>
+        <div class="legend-scale">
+          <h3>Zone Guide</h3>
+          <ul>
+            <li><span class="legend-swatch zone-ve"></span> VE &mdash; Coastal flood with wave action</li>
+            <li><span class="legend-swatch zone-ae"></span> AE &mdash; High risk (Base Flood Elevation)</li>
+            <li><span class="legend-swatch zone-ao"></span> AO &mdash; River/stream flood, depth 1-3 ft</li>
+            <li><span class="legend-swatch zone-a"></span> A &mdash; High risk (no Base Flood Elevation)</li>
+            <li><span class="legend-swatch zone-x"></span> X &mdash; Moderate or minimal risk</li>
+          </ul>
+        </div>
+        <div class="legend-scale parcel-scale">
+          <h3>Parcel Value per sq. meter</h3>
+          <div class="parcel-gradient">
+            <span class="parcel-min">$0/m²</span>
+            <div class="parcel-gradient-bar"></div>
+            <span class="parcel-max">$0/m²</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="info-panel" id="info-panel">
+      <div class="info-search">
+        <form id="parcel-search-form" class="parcel-search" autocomplete="off">
+          <label class="sr-only" for="parcel-search-input">Search parcel name</label>
+          <input
+            type="search"
+            id="parcel-search-input"
+            name="parcel-search"
+            placeholder="Search parcel name…"
+            aria-describedby="parcel-search-feedback"
+          >
+          <button type="submit">Search</button>
+        </form>
+        <p id="parcel-search-feedback" class="search-feedback" aria-live="polite"></p>
+      </div>
+
+      <section class="info-section" id="risk-section">
+        <h2>My Flood Risk</h2>
+        <div class="info-body">
+          <p class="info-placeholder">Click on the map to explore flood zone details for your location.</p>
+        </div>
+      </section>
+
+      <section class="info-section" id="shelter-section">
+        <h2>Where to Go During Flood</h2>
+        <div class="info-body">
+          <p class="info-placeholder">We will list the nearest shelter and travel distance.</p>
+        </div>
+      </section>
+
+      <section class="info-section" id="insurance-section">
+        <h2>Flood Insurance Guide</h2>
+        <div class="info-body">
+          <p class="info-placeholder">Get a quick estimate of insurance needs based on your property value and flood risk.</p>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="app-footer">
+    <p>Data sources: <a href="https://www.fema.gov/flood-maps" target="_blank" rel="noopener noreferrer">FEMA Flood Maps</a>, <a href="https://usvi-open-data-portal-upenn.hub.arcgis.com" target="_blank" rel="noopener noreferrer">USVI Open Data Portal</a>.</p>
+  </footer>
+
+  <!-- Calculation Details Modal -->
+  <div id="calc-modal" class="calc-modal hidden" aria-hidden="true" role="dialog" aria-labelledby="calc-modal-title">
+    <div class="calc-modal__backdrop" data-calc-close></div>
+    <div class="calc-modal__dialog">
+      <div class="calc-modal__header">
+        <h3 id="calc-modal-title">How We Estimate Flood Insurance</h3>
+        <button class="calc-modal__close" type="button" title="Close" aria-label="Close" data-calc-close>&times;</button>
+      </div>
+      <div class="calc-modal__body">
+        <p>
+          The annual premium shown is a simplified estimate to help compare relative risk between zones.
+          We multiply the parcel's total value (land + improvements) by a zone-specific rate and clamp the result to a reasonable range.
+        </p>
+        <ul>
+          <li>Premium = clamp(totalValue × rate, minimum $450, maximum $7,200)</li>
+          <li>Recommended building coverage = min(totalValue, $250,000)</li>
+        </ul>
+        <p>
+          Zone rates used: VE 1.8%, AE 1.5%, AO 1.2%, A 1.2%, X 0.6%, and 0.4% if no mapped zone. These are heuristic placeholders and not official NFIP rates.
+        </p>
+        <p>
+          Actual premiums depend on many additional variables (elevation certificate, foundation type, first-floor height, flood openings, replacement cost, deductibles, private market options, etc.).
+          Contact a licensed agent for a binding quote.
+        </p>
+      </div>
+      <div class="calc-modal__footer">
+        <button class="calc-modal__close-btn" type="button" data-calc-close>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/proj4@2.9.0/dist/proj4.js"></script>
+  <script src="app.js" type="module"></script>
+</body>
+</html>
