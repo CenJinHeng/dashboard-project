@@ -1,68 +1,57 @@
-Dashboards are the bread and butter of spatial data displays. They are highly interactive websites, usually with real-time updates that show data in an accessible way.
+# USVI Flood Risk Dashboard for Residents
 
+## Introduction
 
-## Instructions
+The USVI Flood Risk Dashboard is an interactive data visualization tool designed for residents of the U.S. Virgin Islands (USVI).  
+Its goal is to help individuals understand their **flood risk**, find **nearby emergency shelters**, and receive **personalized flood insurance recommendations**.
 
-### Step 1: Choose a topic
+Flooding is one of the most frequent and destructive natural disasters in the Caribbean. Many residents are unaware of their property’s flood risk level or what actions to take during an emergency.  
+By integrating multiple data sources, including FEMA flood maps, land parcel values, and shelter data, this dashboard supports residents throughout the full **decision-making cycle**:  Risk *Awareness → Emergency Preparedness → Risk Management.*
 
-Choose a topic that is fruitfully explained with some combination of narrative and geographic elements. Think about what data you want to tell a story about, and what kind of decisions you want to support through the use of your dashboard. Evaluate any dataset or interactive element you add to your dashboard on whether it makes it actually supports making those decisions.
+## Key Problems Solved
+- **“What is the flood risk for my home?”**  
+  Visualize your property’s flood zone.
+- **“Where should I go if flooding occurs?”**  
+  Find the nearest emergency shelters, and redirect to Googlle Map for navigation. 
+- **“What flood insurance should I buy?”**  
+  Receive recommendations based on your property’s risk level and value.
 
-Whatever data you use, **be sure to include citations somewhere in your app interface**. You can choose a dataset from any of a number of sources, for example:
+---
 
-* Use data you've been working with for another class
-* Create your own dataset (check out [geojson.io](https://geojson.io))
-* Find data from an open data repository...
+## How to Use
 
-### Step 2: Create a map on your browser
+1. **Open the Map**  **[Link](https://cenjinheng.github.io/dashboard-project/)**
+   
+   Launch the dashboard to view the interactive map of flood hazard zones.
 
-The main component of the dashboard is the map displayign spatial information. This is the building block of all your other features!
+3. **Find Your Location**  
+   - Enter your address in the search bar, **or**  
+   - Click directly on a parcel or location on the map.
 
-* Create basic html with head and body elements, linking to your css stylesheet and javascript file
-* Create map element in html document
-* Style map element in CSS to give it height
-* Create map object in Javascript referencing leaflet quickstart https://leafletjs.com/examples/quick-start/ (will need to link to leaflet documents in your html)
-* Add a basemap tile layer - use OpenStreetMap, Stamen, Mapbox, or another source - you can customize this!
-* NOTE: you may want to separate the code for creating the map into a different javascript file for organization. If you do this, wrap the creation of the map into a function and export that function, and then import it in your main.js file.
+4. **View the Information Panel**  
+   The panel on the right will display:
+   - The **Flood Risk Level** 
+   - The **Nearest Shelters or Hospitals** with distance  
+   - **Insurance Recommendations** based on property value and risk zone
 
-### Step 3: Add data to your map
+5. **Toggle Map Layers (Optional)**  
+   Customize your view by enabling or disabling data layers:
+   - Flood Hazard Zones  
+   - Land Parcel Value
+   - Shelters
 
-* Add data file to your repository folder (usually in a data subfolder) - remember geojson files work best, csv files work too but must be parsed using csv parse https://csv.js.org/parse/ or papa parse https://www.papaparse.com/ . See [the course resources](https://github.com/musa-6110-fall-2023/course-info/blob/main/resources/data-format-csv.md) for a guide to getting started with those libraries.
-* Use fetch API https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API to load your data into your environment (remember, fetch returns a promise, not a file, and a file needs to be extracted from the promise)
-* Create map layer to display data (ie LayerGroup, Marker, etc.. see documentation https://leafletjs.com/reference.html) - style the layer here, not in CSS because CSS cannot access styles within the map 
-* Display data through your map layer (either create an empty layer and pass the data through in a separate function, or input the data directly when you create the layer)
-* optional: attach popup https://leafletjs.com/reference.html#popup and tooltip https://leafletjs.com/reference.html#tooltip to your data layer for more interactivity
+---
 
-### Step 4: Create an interactive element (ie search, highlight, print data, etc)
+## Data Sources
 
-This is the most broad step because you could do so many different things like: 
-* button to filter data shown on map
-* checkbox to filter data shown on map
-* search bar to type in to filter data shown on map (more difficult - try only if you've already accomplished the button)
-* paste/display text of data attributes when you click on the data layer on the map
-* graph data shown on map
+- **[FEMA Flood Maps](https://www.fema.gov/flood-maps)**  
+  Provides official flood hazard zones.
 
-The general steps to accomplish these are:
-* create an html element for the interactive piece (ie button, checkbox, searchbar, graph) ps. if you're interactive event will be clicking on the map, no extra element is needed
-* create a DOM (document object model) element in javascript to set up an event listener - reference DOM exercise we did in class https://github.com/musa-6110-fall-2023/dom-exercises
-* create an event listener (event examples: click a button, check a checkbox, click a map data layer)
-* create a function which responds when the event has happened
-* create a function to parse through data (will require for loop) and accomplish one of the following:
-    * clear data layer and display only the filtered data
-    * print in space outside map (new html element) information about the data
-    * pass data shown on map through a graph and display
- 
-### Step 5: Finishing touches (styling, linting, accessibility)
+- **[USVI Open Data Portal](https://usvi-open-data-portal-upenn.hub.arcgis.com)**  
+  Provides land use, parcel value, and point-of-interest datasets across the U.S. Virgin Islands.
 
-* style the map and data to your liking, which can include doing things like:
-   * customizing your basemap tiles
-   * customizing your marker/data layer style (using your own image in replace for the marker image)
-   * changing fonts and colors in the csv
+---
 
-Make sure to lint use eslint or stylelint to ensure your code is using the widely acceptable syntax
-
-Check for accessibility using:
-* Axe DevTools in browser
-* accessible colors for someone looking at your map, reference colorbrewer or other sites for help with this 
-
-
-  
+**Author:** Jinheng  
+**Project:** USVI Flood Risk Dashboard  
+**Last Updated:** October 2025
