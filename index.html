@@ -36,6 +36,7 @@
             <li><span class="legend-swatch zone-ao"></span> AO &mdash; River/stream flood, depth 1-3 ft</li>
             <li><span class="legend-swatch zone-a"></span> A &mdash; High risk (no Base Flood Elevation)</li>
             <li><span class="legend-swatch zone-x"></span> X &mdash; Moderate or minimal risk</li>
+            <li><span class="legend-swatch legend-shelter"></span> Shelters</li>
           </ul>
         </div>
         <div class="legend-scale parcel-scale">
@@ -92,13 +93,24 @@
     <p>Data sources: <a href="https://www.fema.gov/flood-maps" target="_blank" rel="noopener noreferrer">FEMA Flood Maps</a>, <a href="https://usvi-open-data-portal-upenn.hub.arcgis.com" target="_blank" rel="noopener noreferrer">USVI Open Data Portal</a>.</p>
   </footer>
 
+  <!-- Tutorial Modal -->
+  <div id="tutorial-modal" class="tutorial-modal hidden" role="dialog" aria-modal="true" aria-labelledby="tutorial-modal-title">
+    <div class="tutorial-modal__backdrop" data-tutorial-close></div>
+    <div class="tutorial-modal__dialog">
+      <h2 id="tutorial-modal-title">Welcome to the Flood Risk Dashboard</h2>
+      <p class="tutorial-modal__body">
+        Click anywhere on the map to see the flood risk, the nearest shelter, and view flood insurance suggestions.
+      </p>
+      <button type="button" class="tutorial-modal__action" data-tutorial-close>Got it</button>
+    </div>
+  </div>
+
   <!-- Calculation Details Modal -->
   <div id="calc-modal" class="calc-modal hidden" aria-hidden="true" role="dialog" aria-labelledby="calc-modal-title">
     <div class="calc-modal__backdrop" data-calc-close></div>
     <div class="calc-modal__dialog">
       <div class="calc-modal__header">
         <h3 id="calc-modal-title">How We Estimate Flood Insurance</h3>
-        <button class="calc-modal__close" type="button" title="Close" aria-label="Close" data-calc-close>&times;</button>
       </div>
       <div class="calc-modal__body">
         <p>
@@ -118,7 +130,7 @@
         </p>
       </div>
       <div class="calc-modal__footer">
-        <button class="calc-modal__close-btn" type="button" data-calc-close>Close</button>
+        <button class="calc-modal__action" type="button" data-calc-close>Close</button>
       </div>
     </div>
   </div>

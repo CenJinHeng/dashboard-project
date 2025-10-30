@@ -180,6 +180,11 @@ const infoPanel = {
   insurance: document.querySelector("#insurance-section .info-body")
 };
 
+const tutorialModal = document.getElementById("tutorial-modal");
+const tutorialCloseButtons = tutorialModal
+  ? tutorialModal.querySelectorAll('[data-tutorial-close]')
+  : [];
+
 const parcelSearchForm = document.getElementById("parcel-search-form");
 const parcelSearchInput = document.getElementById("parcel-search-input");
 const parcelSearchFeedback = document.getElementById("parcel-search-feedback");
@@ -187,6 +192,22 @@ const RISK_TOOLTIP_ALIGN_CLASSES = [
   "risk-summary__tooltip-content--align-left",
   "risk-summary__tooltip-content--align-right"
 ];
+
+function showTutorialModal() {
+  if (!tutorialModal) return;
+  tutorialModal.classList.remove("hidden");
+  tutorialModal.setAttribute("aria-hidden", "false");
+  const actionButton = tutorialModal.querySelector(".tutorial-modal__action");
+  if (actionButton) {
+    actionButton.focus({ preventScroll: true });
+  }
+}
+
+function hideTutorialModal() {
+  if (!tutorialModal) return;
+  tutorialModal.classList.add("hidden");
+  tutorialModal.setAttribute("aria-hidden", "true");
+}
 
 const calcNoteHtml =
   '<div class="calc-note">'
@@ -1769,6 +1790,17 @@ if (parcelSearchForm) {
 if (parcelSearchInput) {
   parcelSearchInput.addEventListener("input", () => setParcelSearchFeedback("", false));
 }
+
+if (tutorialModal) {
+  tutorialCloseButtons.forEach(btn => btn.addEventListener("click", hideTutorialModal));
+  tutorialModal.addEventListener("keydown", event => {
+    if (event.key === "Escape" || event.key === "Esc") {
+      hideTutorialModal();
+    }
+  });
+}
+
+showTutorialModal();
 
 async function init() {
   try {
