@@ -6,7 +6,7 @@ The USVI Flood Risk Dashboard is an interactive data visualization tool designed
 Its goal is to help individuals understand their **flood risk**, find **nearby emergency shelters**, and receive **personalized flood insurance recommendations**.
 
 Flooding is one of the most frequent and destructive natural disasters in the Caribbean. Many residents are unaware of their property’s flood risk level or what actions to take during an emergency.  
-By integrating multiple data sources, including FEMA flood maps, land parcel values, and shelter data, this dashboard supports residents throughout the full **decision-making cycle**:  Risk *Awareness → Emergency Preparedness → Risk Management.*
+By integrating multiple data sources, including FEMA flood maps, land parcel values, and shelter data, this dashboard supports residents throughout the full **decision-making cycle**:  Risk *Awareness > Emergency Preparedness > Risk Management.*
 
 ## Key Problems Solved
 - **“What is the flood risk for my home?”**  
