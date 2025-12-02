@@ -1,6 +1,6 @@
 # USVI Flood Risk Dashboard for Residents
 
-## Presentation slide desk[Link](https://docs.google.com/presentation/d/1PnJiVcnPF5Ht7bmVuiNVMHMsRJLiIO7LLvhhj2mPyZU/edit?usp=sharing)
+## Presentation slide desk [Link](https://docs.google.com/presentation/d/1PnJiVcnPF5Ht7bmVuiNVMHMsRJLiIO7LLvhhj2mPyZU/edit?usp=sharing)
 
 ## Introduction
 
