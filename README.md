@@ -1,5 +1,7 @@
 # USVI Flood Risk Dashboard for Residents
 
+## Presentation slide desk[Link](https://docs.google.com/presentation/d/1PnJiVcnPF5Ht7bmVuiNVMHMsRJLiIO7LLvhhj2mPyZU/edit?usp=sharing)
+
 ## Introduction
 
 The USVI Flood Risk Dashboard is an interactive data visualization tool designed for residents of the U.S. Virgin Islands (USVI).  
