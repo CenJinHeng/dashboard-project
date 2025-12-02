@@ -1953,19 +1953,15 @@ const renderShelterInfo = (shelterResult, parcelFeature) => {
   let navigationButtonHtml = "";
 
   const shelterLonLat = getShelterLonLat(shelterResult.feature);
-  if (shelterLonLat) {
+  const parcelLonLat = getParcelLonLat(parcelFeature);
+  if (shelterLonLat && parcelLonLat) {
     const [shelterLon, shelterLat] = shelterLonLat;
-    const originLabel = parcelFeature?.properties?.displayName
-      ? `${parcelFeature.properties.displayName}, USVI Stthomas`
-      : "USVI Stthomas";
-    const destinationLabel = `${Name}, USVI Stthomas`;
+    const [parcelLon, parcelLat] = parcelLonLat;
+    const originCoords = `${parcelLat.toFixed(6)},${parcelLon.toFixed(6)}`;
+    const destinationCoords = `${shelterLat.toFixed(6)},${shelterLon.toFixed(6)}`;
     const navigationUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
-      originLabel
-    )}&destination=${encodeURIComponent(
-      `${shelterLat.toFixed(6)},${shelterLon.toFixed(6)}`
-    )}&destination_place_id=&origin_place_id=&travelmode=driving&query=${encodeURIComponent(
-      `${destinationLabel}`
-    )}`;
+      originCoords
+    )}&destination=${encodeURIComponent(destinationCoords)}`;
     navigationButtonHtml = `
       <a
         class="shelter-nav-button"
