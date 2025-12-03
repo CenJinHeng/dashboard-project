@@ -56,5 +56,4 @@ This dashboard supports residents throughout the full decision-making cycle:  Ri
 
 **Author:** Jinheng  
 **Project:** USVI Flood Risk Dashboard  
-**Last Updated:** October 2025
-**Note:** AI was used in this project for fixing bug, adding mutiple languages options, and some features building.
+**Note:** AI was used in this project for fixing bug, adding mutiple languages options, and some features building
